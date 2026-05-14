@@ -1,0 +1,8 @@
+﻿部署说明（解压后进入 ecommerce-prompt-gen 目录）
+==============================================
+1. 安装 Node.js 18+。
+2. npm install
+3. 开发：npm run dev
+4. 生产：npm run build，发布 dist 为静态站点。
+5. 本包内含 .env（API 密钥），勿上传到公开仓库。
+
