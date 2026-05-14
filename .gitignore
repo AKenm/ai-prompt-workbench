@@ -28,3 +28,4 @@ dist-ssr
 
 # Local release bundle（内含 .env，勿提交）
 ecommerce-prompt-gen-src.zip
+
