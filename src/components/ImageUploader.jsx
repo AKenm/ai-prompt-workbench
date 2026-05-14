@@ -5,15 +5,17 @@ import { compressImage } from '../utils/image';
 export default function ImageUploader({ image, onImageChange, onImageRemove }) {
   const [isDragging, setIsDragging] = useState(false);
   const [compressing, setCompressing] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;
+    setUploadError(null);
     if (!file.type.startsWith('image/')) {
-      alert('请上传图片文件');
+      setUploadError('请上传图片文件（JPG、PNG、WEBP）');
       return;
     }
     if (file.size > 20 * 1024 * 1024) {
-      alert('图片大小不能超过 20MB');
+      setUploadError('图片大小不能超过 20MB');
       return;
     }
 
@@ -33,7 +35,7 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
 
         onImageChange(compressed);
       } catch (err) {
-        alert('图片压缩失败: ' + err.message);
+        setUploadError('图片压缩失败: ' + (err?.message || '未知错误'));
         if (import.meta.env.DEV) console.error(err);
       } finally {
         setCompressing(false);
@@ -95,6 +97,12 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
             </button>
           </div>
         </div>
+        {uploadError && (
+          <div className="absolute top-12 left-3 right-3 z-20 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50 px-3 py-2 text-xs text-red-700 dark:text-red-300 shadow-lg">
+            <button type="button" onClick={() => setUploadError(null)} className="mr-1 font-bold underline">[关闭]</button>
+            {uploadError}
+          </div>
+        )}
         <input
           id="product-image-replace"
           type="file"
@@ -160,6 +168,12 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
             ))}
           </div>
         </div>
+        {uploadError && (
+          <div className="mt-2 w-full rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50 px-3 py-2 text-xs text-red-700 dark:text-red-300">
+            <button type="button" onClick={() => setUploadError(null)} className="mr-1 font-bold underline">[关闭]</button>
+            {uploadError}
+          </div>
+        )}
         <input
           id="product-image-input"
           type="file"

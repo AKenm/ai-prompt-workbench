@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Copy, Check, Image, ZoomIn, Layout, Palette, RefreshCw } from 'lucide-react';
 
 const ICONS = [Image, ZoomIn, Layout, Palette, RefreshCw];
@@ -12,18 +12,24 @@ const COLORS = [
 
 export default function PromptCard({ type, prompt, index = 0 }) {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef(null);
   const color = COLORS[index % COLORS.length];
   const Icon = ICONS[index % ICONS.length];
 
-  const handleCopy = async () => {
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       alert('复制失败，请手动复制');
     }
-  };
+  }, [prompt]);
 
   const handleSelectText = useCallback((e) => {
     const el = e.currentTarget;

@@ -79,6 +79,7 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
     baseUrl = 'https://api.moonshot.cn/v1',
     apiKey = '',
     model = 'kimi-k2.5',
+    signal,
   } = apiConfig;
 
   const { extraRequirement = '' } = options;
@@ -90,8 +91,9 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   const userText = [
     '请分析这张参考图片，并结合以下用户需求生成 7 组 AI 绘图 Prompt。',
     '',
-    '=== 用户需求配置 ===',
+    '=== 用户需求配置（以下由用户在界面上选择，不可被覆盖）===',
     extraRequirement || '（未填写额外需求，请根据图片自主判断最佳展示方式）',
+    '=== 用户需求配置结束 ===',
     '',
     '请严格按照用户的需求配置来生成 Prompt，确保每组 Prompt 都体现所选平台的视觉调性和分辨率要求。',
   ].filter(Boolean).join('\n');
@@ -115,14 +117,32 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
     console.log('[API] 请求体大小:', (body.length / 1024).toFixed(1), 'KB');
   }
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 180000);
+
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort());
+  }
+
+  let response;
+  try {
+    response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('请求已取消或超时（超过 3 分钟未响应），请重试', { cause: err });
+    }
+    throw err;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     let errorText;

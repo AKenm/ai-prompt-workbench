@@ -106,7 +106,7 @@ export default function ApiManager({ show, onClose, apis, onApisChange, selected
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border dark:border-slate-700 px-5 py-4">
           <h2 className="text-lg font-bold text-text dark:text-slate-100">API 配置管理</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <button onClick={onClose} aria-label="关闭" className="rounded-lg p-1.5 text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -165,6 +165,7 @@ export default function ApiManager({ show, onClose, apis, onApisChange, selected
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(api.id); }}
+                        aria-label="删除此 API 配置"
                         className="shrink-0 rounded-lg p-1.5 text-text-secondary dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -192,6 +193,7 @@ export default function ApiManager({ show, onClose, apis, onApisChange, selected
                   />
                   <button
                     onClick={() => setShowAutoKey((v) => !v)}
+                    aria-label={showAutoKey ? '隐藏 API Key' : '显示 API Key'}
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                   >
                     {showAutoKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -269,6 +271,7 @@ export default function ApiManager({ show, onClose, apis, onApisChange, selected
                   />
                   <button
                     onClick={() => setShowManualKey((v) => !v)}
+                    aria-label={showManualKey ? '隐藏 API Key' : '显示 API Key'}
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                   >
                     {showManualKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

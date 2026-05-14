@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Wand2,
   AlertCircle,
@@ -10,6 +10,7 @@ import {
   Moon,
   RotateCcw,
   Settings,
+  XCircle,
 } from 'lucide-react';
 import ImageUploader from './components/ImageUploader';
 import PromptCard from './components/PromptCard';
@@ -77,6 +78,8 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const copiedAllTimerRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const [platform, setPlatform] = useState('amazon');
   const [customPlatform, setCustomPlatform] = useState('');
@@ -176,6 +179,11 @@ export default function App() {
 
   const handleGenerate = useCallback(async () => {
     if (!image) return;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -194,12 +202,18 @@ export default function App() {
         baseUrl: activeApi.baseUrl,
         apiKey: activeApi.apiKey,
         model: activeApi.model,
+        signal: controller.signal,
       } : undefined);
       setResult(data);
     } catch (err) {
-      setError(err.message || '生成失败，请重试');
+      if (err.name !== 'AbortError') {
+        setError(err?.message || String(err) || '生成失败，请重试');
+      }
     } finally {
       setLoading(false);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
   }, [image, buildRequirementsText, getEffectivePlatform, getEffectiveResolution, subjectType, style, targetTool, activeApi]);
 
@@ -218,11 +232,29 @@ export default function App() {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedAll(true);
-      setTimeout(() => setCopiedAll(false), 2200);
+      clearTimeout(copiedAllTimerRef.current);
+      copiedAllTimerRef.current = setTimeout(() => setCopiedAll(false), 2200);
     } catch {
       alert('复制失败，请分段复制');
     }
   }, [buildAllText]);
+
+  const handleCancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(copiedAllTimerRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleReset = useCallback(() => {
     setImage(null);
@@ -377,14 +409,18 @@ export default function App() {
 
           <button
             type="button"
-            onClick={handleGenerate}
-            disabled={!image || loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary dark:bg-indigo-600 px-4 py-2.5 text-base font-bold text-white shadow-md shadow-primary/20 dark:shadow-indigo-500/20 transition hover:bg-primary-dark dark:hover:bg-indigo-500 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 disabled:pointer-events-none disabled:bg-primary/55 disabled:text-white/80 disabled:shadow-none"
+            onClick={loading ? handleCancel : handleGenerate}
+            disabled={!image && !loading}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-base font-bold text-white shadow-md transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none ${
+              loading
+                ? 'bg-red-600 dark:bg-red-700 shadow-red-500/20 dark:shadow-red-500/20 hover:bg-red-700 dark:hover:bg-red-600 focus-visible:ring-red-400'
+                : 'bg-primary dark:bg-indigo-600 shadow-primary/20 dark:shadow-indigo-500/20 hover:bg-primary-dark dark:hover:bg-indigo-500 focus-visible:ring-primary'
+            }`}
           >
             {loading ? (
               <>
-                <span className="h-4 w-4 rounded-full border-2 border-white/35 border-t-white motion-safe:animate-spin" />
-                生成中…
+                <XCircle className="h-4 w-4 shrink-0" />
+                取消生成
               </>
             ) : (
               <>
@@ -394,7 +430,19 @@ export default function App() {
             )}
           </button>
 
-          {loading && <LoadingSpinner />}
+          {loading && (
+            <div className="flex items-center justify-between gap-2">
+              <LoadingSpinner />
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex shrink-0 items-center gap-1 rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 shadow-sm transition hover:bg-red-50 dark:hover:bg-red-950"
+              >
+                <XCircle className="h-4 w-4" />
+                取消
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-red-200/90 dark:border-red-800/60 bg-gradient-to-br from-red-50 to-orange-50/95 dark:from-red-950/50 dark:to-orange-950/50 p-3 text-red-900 dark:text-red-200 shadow-sm" role="alert">

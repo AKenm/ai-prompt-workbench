@@ -25,8 +25,9 @@ export function compressImage(dataUrl, maxWidth = 1024, maxHeight = 1024, qualit
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 转为 JPEG base64，通常比 PNG 小很多
-      const compressed = canvas.toDataURL('image/jpeg', quality);
+      const hasAlpha = ctx.getImageData(0, 0, 1, 1).data[3] < 255;
+      const format = hasAlpha ? 'image/png' : 'image/jpeg';
+      const compressed = canvas.toDataURL(format, quality);
       resolve(compressed);
     };
     img.onerror = () => reject(new Error('图片加载失败'));
