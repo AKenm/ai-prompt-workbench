@@ -1,7 +1,8 @@
 // 进度条阶段标签（按真实百分比区间划分）
 const STAGE_LABELS = [
-  { from: 0,  to: 5,  label: '连接 API 中…' },
-  { from: 5,  to: 30, label: '解析参考图像…' },
+  { from: 0,  to: 2,  label: '准备请求…' },
+  { from: 2,  to: 5,  label: '上传图片中，请稍候…' },
+  { from: 5,  to: 30, label: '模型解析参考图像…' },
   { from: 30, to: 55, label: '生成 Prompt 内容…' },
   { from: 55, to: 80, label: '持续输出中…' },
   { from: 80, to: 94, label: '接收最终数据…' },

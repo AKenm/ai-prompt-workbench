@@ -306,6 +306,8 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
     signal.addEventListener('abort', () => controller.abort());
   }
 
+  onProgress?.(1); // 开始上传请求
+
   let response;
   try {
     response = await fetch(`${baseUrl}/chat/completions`, {
@@ -344,14 +346,14 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   }
 
   // ── SSE 流读取 ──────────────────────────────────────────────
-  // 预估完整响应约 2200 字符（7 组 prompt × ~300 字符），用于计算进度百分比
-  const ESTIMATED_CHARS = 2200;
+  // 预估完整响应约 3000 字符（9 组 prompt × ~300 字符），用于计算进度百分比
+  const ESTIMATED_CHARS = 3000;
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let accumulated = '';
   let buffer = '';
 
-  onProgress?.(2); // 已收到响应头，开始读取
+  onProgress?.(5); // 已收到响应头，开始读取流
 
   try {
     while (true) {

@@ -6,7 +6,7 @@
  * @param {number} quality - 压缩质量 0-1
  * @returns {Promise<string>} 压缩后的 base64
  */
-export function compressImage(dataUrl, maxWidth = 1024, maxHeight = 1024, quality = 0.85) {
+export function compressImage(dataUrl, maxWidth = 800, maxHeight = 800, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
