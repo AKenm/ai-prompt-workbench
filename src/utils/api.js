@@ -264,7 +264,7 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   const systemPrompt = buildSystemPrompt({ targetTool, platform, platformLabel });
 
   const userText = [
-    '请分析这张参考图片，并结合以下用户需求生成 7 组 AI 绘图 Prompt。',
+    '请分析这张参考图片，并结合以下用户需求生成 9 组 AI 绘图 Prompt。',
     '',
     '【硬性要求 · 与参考图一致】最终用这些 Prompt 在目标工具里出图时，画面中的商品/主体必须与上传的参考图为**同一款式、同一配色、同一外观细节**（轮廓、材质、Logo、图案、结构等），禁止生成换款、换色、换版型或「相似但不同」的产品。只允许变化：机位与构图、光影、背景与环境、合规主图背景、详情图排版。',
     '',
@@ -280,6 +280,7 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   const body = JSON.stringify({
     model,
     stream: true,
+    max_tokens: 8192,
     messages: [
       { role: 'system', content: systemPrompt },
       {
@@ -454,7 +455,13 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   } catch (cause) {
     if (import.meta.env.DEV) console.error('[API] 解析失败，原始内容:', content);
     const msg = cause instanceof Error ? cause.message : String(cause);
-    throw new Error(`无法解析模型返回的数据（${msg}），请重试`);
+    // JSON 截断（position 很大）通常是 max_tokens 不足导致的
+    const isTruncated = /position \d{3,}|unexpected end|unterminated/i.test(msg);
+    throw new Error(
+      isTruncated
+        ? '模型返回内容被截断，请在 API 配置中确认所用模型支持 8k+ 输出，或尝试换用 kimi-k2.5 / qwen-vl-plus 等长上下文模型重试。'
+        : `无法解析模型返回的数据（${msg}），请重试`
+    );
   }
 }
 

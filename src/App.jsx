@@ -13,7 +13,8 @@ import {
   XCircle,
   Layers,
   ChevronDown,
-  Radio,
+  BookOpen,
+  SlidersHorizontal,
 } from 'lucide-react';
 import ImageUploader from './components/ImageUploader';
 import PromptCard from './components/PromptCard';
@@ -420,8 +421,11 @@ export default function App() {
           {/* 需求配置 */}
           <div className="glass-card overflow-hidden">
             <div className="border-b border-white/30 px-3 py-2 dark:border-white/10">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">需求配置</span>
-              <span className="ml-2 text-[10px] text-slate-400">留空走自动模式</span>
+              <div className="flex items-center gap-1.5">
+                <SlidersHorizontal className="h-3 w-3 shrink-0 text-violet-500 dark:text-violet-400" aria-hidden />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">需求配置</span>
+                <span className="text-[10px] text-slate-400">留空走自动模式</span>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-x-2 gap-y-2 p-3">
               {/* 电商平台 */}
@@ -548,6 +552,26 @@ export default function App() {
               </button>
             </div>
           )}
+
+          {/* 使用方法引导 */}
+          <div className="shrink-0 rounded-2xl border border-white/40 bg-white/35 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.06]">
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <BookOpen className="h-3 w-3 shrink-0 text-indigo-500 dark:text-indigo-400" aria-hidden />
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">使用方法</p>
+            </div>
+            <ul className="space-y-1 text-[11px] leading-snug text-slate-600 dark:text-slate-400">
+              {[
+                <>右侧卡片可<strong>直接编辑</strong> Prompt，改完再使用。</>,
+                <>点「复制」或「一键全部」，粘贴到对应<strong>生图平台</strong>。</>,
+                <>在平台出图时，<strong>同时上传参考图</strong>才能保持款式一致。</>,
+              ].map((text, i) => (
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="mt-[3px] h-1 w-1 shrink-0 rounded-full bg-indigo-400" />
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
 
         {/* ──── 右栏：Prompt 结果区（flex-1，独立滚动） ──── */}
