@@ -31,7 +31,7 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
         if (!mountedRef.current) return;
         setCompressing(true);
         const original = e.target.result;
-        const compressed = await compressImage(original, 1024, 1024, 0.85);
+        const compressed = await compressImage(original, 512, 512, 0.72);
         if (!mountedRef.current) return;
         onImageChange(compressed);
       } catch (err) {

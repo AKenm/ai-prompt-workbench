@@ -280,7 +280,7 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   const body = JSON.stringify({
     model,
     stream: true,
-    max_tokens: 8192,
+    max_tokens: 4000,
     messages: [
       { role: 'system', content: systemPrompt },
       {
