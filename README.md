@@ -1,16 +1,33 @@
-# React + Vite
+# AI 绘图提示词工作台
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+上传参考图 + 配置需求 → 生成 7 组专业 AI 绘图 Prompt，适配 Midjourney / Stable Diffusion / DALL-E 等工具。
 
-Currently, two official plugins are available:
+## 功能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 图片上传（拖拽 / 点击，自动压缩）
+- 需求配置（30+ 电商平台、主题、风格、分辨率等）
+- API 配置管理（自动检测 / 手动添加，支持多 API 切换）
+- 7 组专业 Prompt 生成
+- Prompt 卡片展示与一键复制
+- 暗色 / 亮色模式
 
-## React Compiler
+## 使用
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+构建生产版本：
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run build
+npm run preview
+```
+
+## ⚠️ 安全提醒
+
+API Key 通过浏览器 `localStorage` 存储在本地，**不会上传至任何第三方服务器**（AI API 调用除外）。
+
+- 在使用完毕后，建议在 **「API 配置管理」** 面板中删除不再需要的 API Key
+- 如在公共或共享设备上使用，请在使用后清除浏览器站点数据（localStorage），防止 Key 泄露

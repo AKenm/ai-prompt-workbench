@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { ImageIcon } from 'lucide-react';
 import { compressImage } from '../utils/image';
 
@@ -6,6 +6,8 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
   const [isDragging, setIsDragging] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const mountedRef = useRef(false);
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;
@@ -22,6 +24,7 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
+        if (!mountedRef.current) return;
         setCompressing(true);
         const original = e.target.result;
         if (import.meta.env.DEV) {
@@ -29,16 +32,18 @@ export default function ImageUploader({ image, onImageChange, onImageRemove }) {
         }
 
         const compressed = await compressImage(original, 1024, 1024, 0.85);
+        if (!mountedRef.current) return;
         if (import.meta.env.DEV) {
           console.log('[Image] 压缩后大小:', (compressed.length / 1024).toFixed(1), 'KB');
         }
 
         onImageChange(compressed);
       } catch (err) {
+        if (!mountedRef.current) return;
         setUploadError('图片压缩失败: ' + (err?.message || '未知错误'));
         if (import.meta.env.DEV) console.error(err);
       } finally {
-        setCompressing(false);
+        if (mountedRef.current) setCompressing(false);
       }
     };
     reader.readAsDataURL(file);

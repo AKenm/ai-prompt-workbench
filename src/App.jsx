@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Wand2,
   AlertCircle,
+  AlertTriangle,
   Sparkles,
   ClipboardList,
   Check,
@@ -72,6 +73,11 @@ const RESOLUTIONS = [
   { value: 'custom', label: '✏️ 自定义分辨率' },
 ];
 
+const selectClass =
+  'w-full rounded-lg border border-border bg-white dark:bg-slate-800 dark:border-slate-600 px-3 py-1.5 text-sm text-text dark:text-slate-200 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
+const inputClass =
+  'w-full rounded-lg border border-border bg-white dark:bg-slate-800 dark:border-slate-600 px-3 py-1.5 text-sm text-text dark:text-slate-200 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
+
 export default function App() {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -80,6 +86,7 @@ export default function App() {
   const [copiedAll, setCopiedAll] = useState(false);
   const copiedAllTimerRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   const [platform, setPlatform] = useState('amazon');
   const [customPlatform, setCustomPlatform] = useState('');
@@ -114,7 +121,7 @@ export default function App() {
     }
   }, [selectedApiId]);
 
-  const activeApi = apiList.find((a) => a.id === selectedApiId) || apiList[0] || null;
+  const activeApi = useMemo(() => apiList.find((a) => a.id === selectedApiId) || apiList[0] || null, [apiList, selectedApiId]);
 
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -181,9 +188,11 @@ export default function App() {
     if (!image) return;
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    const thisRequestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -204,13 +213,17 @@ export default function App() {
         model: activeApi.model,
         signal: controller.signal,
       } : undefined);
-      setResult(data);
+      if (thisRequestId === requestIdRef.current) {
+        setResult(data);
+      }
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if (thisRequestId === requestIdRef.current && err.name !== 'AbortError') {
         setError(err?.message || String(err) || '生成失败，请重试');
       }
     } finally {
-      setLoading(false);
+      if (thisRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
       }
@@ -256,16 +269,30 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    let timer;
+    const handleVisibility = () => {
+      if (document.hidden) {
+        timer = setTimeout(() => {
+          fetch('/__shutdown', { keepalive: true });
+        }, 2000);
+      } else {
+        clearTimeout(timer);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearTimeout(timer);
+    };
+  }, []);
+
   const handleReset = useCallback(() => {
     setImage(null);
     setResult(null);
     setError(null);
   }, []);
-
-  const selectClass =
-    'w-full rounded-lg border border-border bg-white dark:bg-slate-800 dark:border-slate-600 px-3 py-1.5 text-sm text-text dark:text-slate-200 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
-  const inputClass =
-    'w-full rounded-lg border border-border bg-white dark:bg-slate-800 dark:border-slate-600 px-3 py-1.5 text-sm text-text dark:text-slate-200 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
 
   const shouldShowCustomPlatform = platform === 'custom';
   const shouldShowCustomResolution = resolution === 'custom';
@@ -324,6 +351,16 @@ export default function App() {
             <span className="text-xs text-text-secondary dark:text-slate-400">⚙️</span>
           </button>
 
+          {activeApi && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-300 dark:border-amber-600 bg-amber-100 dark:bg-amber-900/60 px-3 py-2.5 shadow-sm">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-px" />
+              <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+                <span className="font-bold">安全提醒：</span>
+                API Key 存储在浏览器 localStorage。公共或共享设备使用后，请在 API 管理中删除 Key。
+              </p>
+            </div>
+          )}
+
           <WorkflowBar image={image} loading={loading} result={result} />
 
           <ImageUploader
@@ -339,12 +376,12 @@ export default function App() {
                 <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 lg:text-sm">电商平台</label>
                 <select value={platform} onChange={(e) => setPlatform(e.target.value)} className={selectClass}>
                   <optgroup label="— 国际平台 —">
-                    {PLATFORMS.slice(0, 23).map((p) => (
+                    {PLATFORMS.slice(0, 22).map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </optgroup>
                   <optgroup label="— 国内平台 —">
-                    {PLATFORMS.slice(23, -1).map((p) => (
+                    {PLATFORMS.slice(22, -1).map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </optgroup>
@@ -410,7 +447,7 @@ export default function App() {
           <button
             type="button"
             onClick={loading ? handleCancel : handleGenerate}
-            disabled={!image && !loading}
+            disabled={(!image || !activeApi) && !loading}
             className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-base font-bold text-white shadow-md transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none ${
               loading
                 ? 'bg-red-600 dark:bg-red-700 shadow-red-500/20 dark:shadow-red-500/20 hover:bg-red-700 dark:hover:bg-red-600 focus-visible:ring-red-400'
@@ -430,19 +467,7 @@ export default function App() {
             )}
           </button>
 
-          {loading && (
-            <div className="flex items-center justify-between gap-2">
-              <LoadingSpinner />
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="flex shrink-0 items-center gap-1 rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 shadow-sm transition hover:bg-red-50 dark:hover:bg-red-950"
-              >
-                <XCircle className="h-4 w-4" />
-                取消
-              </button>
-            </div>
-          )}
+          {loading && <LoadingSpinner />}
 
           {error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-red-200/90 dark:border-red-800/60 bg-gradient-to-br from-red-50 to-orange-50/95 dark:from-red-950/50 dark:to-orange-950/50 p-3 text-red-900 dark:text-red-200 shadow-sm" role="alert">

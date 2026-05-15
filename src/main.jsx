@@ -35,7 +35,9 @@ class ErrorBoundary extends Component {
   }
 }
 
-createRoot(document.getElementById('root')).render(
+const rootEl = document.getElementById('root');
+if (!rootEl) throw new Error('找不到 #root 元素，请检查 index.html');
+createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>
       <App />

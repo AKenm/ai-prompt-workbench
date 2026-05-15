@@ -23,6 +23,10 @@ export function compressImage(dataUrl, maxWidth = 1024, maxHeight = 1024, qualit
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('无法创建 Canvas 上下文'));
+        return;
+      }
       ctx.drawImage(img, 0, 0, width, height);
 
       const hasAlpha = ctx.getImageData(0, 0, 1, 1).data[3] < 255;

@@ -138,7 +138,7 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
-      throw new Error('请求已取消或超时（超过 3 分钟未响应），请重试', { cause: err });
+      throw err;
     }
     throw err;
   }
@@ -186,13 +186,13 @@ export async function generatePrompts(base64Image, options = {}, apiConfig = {})
 
 // 已知 API 提供商，用于自动检测
 export const KNOWN_PROVIDERS = [
-  { name: 'Moonshot (Kimi)',   baseUrl: 'https://api.moonshot.cn/v1',              defaultModel: 'kimi-k2.5' },
-  { name: 'OpenAI',            baseUrl: 'https://api.openai.com/v1',                defaultModel: 'gpt-4o' },
-  { name: 'DeepSeek',          baseUrl: 'https://api.deepseek.com/v1',              defaultModel: 'deepseek-chat' },
-  { name: '智谱 (BigModel)',    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',     defaultModel: 'glm-4-flash' },
-  { name: '通义千问',           baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', defaultModel: 'qwen-turbo' },
-  { name: '硅基流动',           baseUrl: 'https://api.siliconflow.cn/v1',            defaultModel: 'Qwen/Qwen2.5-7B-Instruct' },
-  { name: 'Groq',              baseUrl: 'https://api.groq.com/openai/v1',            defaultModel: 'llama-3.3-70b-versatile' },
+  { name: 'Moonshot (Kimi)',   baseUrl: 'https://api.moonshot.cn/v1',              defaultModel: 'kimi-k2.5',           models: ['kimi-k2.5', 'moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'] },
+  { name: 'OpenAI',            baseUrl: 'https://api.openai.com/v1',                defaultModel: 'gpt-4o',              models: ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o3-mini', 'o1-mini'] },
+  { name: 'DeepSeek',          baseUrl: 'https://api.deepseek.com/v1',              defaultModel: 'deepseek-chat',        models: ['deepseek-chat', 'deepseek-reasoner'] },
+  { name: '智谱 (BigModel)',    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',     defaultModel: 'glm-4-flash',          models: ['glm-4-flash', 'glm-4', 'glm-4-plus', 'glm-4-air'] },
+  { name: '通义千问',           baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', defaultModel: 'qwen-turbo', models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-vl-plus'] },
+  { name: '硅基流动',           baseUrl: 'https://api.siliconflow.cn/v1',            defaultModel: 'Qwen/Qwen2.5-7B-Instruct', models: ['Qwen/Qwen2.5-7B-Instruct', 'deepseek-ai/DeepSeek-V3', 'deepseek-ai/DeepSeek-R1', 'Qwen/Qwen2.5-72B-Instruct'] },
+  { name: 'Groq',              baseUrl: 'https://api.groq.com/openai/v1',            defaultModel: 'llama-3.3-70b-versatile', models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'] },
 ];
 
 /**
