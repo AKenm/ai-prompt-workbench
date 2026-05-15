@@ -574,64 +574,67 @@ export default function App() {
           </div>
         </aside>
 
-        {/* ──── 右栏：Prompt 结果区（flex-1，独立滚动） ──── */}
-        <main className="thin-scrollbar flex flex-1 flex-col overflow-y-auto p-4">
-          {result ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500 shadow-md shadow-indigo-500/25">
-                    <ClipboardList className="h-4 w-4 text-white" />
+        {/* ──── 右栏：与空态同一圆角卡片载体，内容在区内滚动 ──── */}
+        <main className="flex min-h-0 flex-1 flex-col p-4">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl glass-soft">
+            {result ? (
+              <>
+                <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/40 px-4 py-3 dark:border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500 shadow-md shadow-indigo-500/25">
+                      <ClipboardList className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">Prompt 工作台</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {allPrompts.length} 组 · 卡片内编辑或一键复制
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Prompt 工作台</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                      {allPrompts.length} 组 · 点卡片复制或一键全部
-                    </p>
+                  <button
+                    type="button"
+                    onClick={handleCopyAll}
+                    className="shrink-0 flex items-center gap-1.5 rounded-xl glass-card px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:scale-[1.01] dark:text-indigo-300"
+                  >
+                    {copiedAll ? (
+                      <><Check className="h-3.5 w-3.5 text-emerald-500" />已全部复制</>
+                    ) : (
+                      <><Copy className="h-3.5 w-3.5" />一键复制全部</>
+                    )}
+                  </button>
+                </div>
+
+                <div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {allPrompts.map((p, i) => (
+                      <PromptCard key={p.id} type={p.label} prompt={p.prompt} description={p.description} index={i} />
+                    ))}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCopyAll}
-                  className="flex items-center gap-1.5 rounded-xl glass-card px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:scale-[1.01] dark:text-indigo-300"
-                >
-                  {copiedAll ? (
-                    <><Check className="h-3.5 w-3.5 text-emerald-500" />已全部复制</>
-                  ) : (
-                    <><Copy className="h-3.5 w-3.5" />一键复制全部</>
-                  )}
-                </button>
+              </>
+            ) : (
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-4 py-8">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/20 via-violet-500/20 to-pink-500/20">
+                  <Layers className="h-7 w-7 text-indigo-400 dark:text-indigo-300" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                    尚未生成 Prompt
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                    在左侧配置需求后，点击「生成 9 组专属 Prompt」
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
+                  {['上传参考图', '选择电商平台', '指定绘图模型', '一键生成 9 组'].map((t, i) => (
+                    <span key={i} className="flex items-center gap-1 rounded-full glass-card px-2.5 py-1">
+                      <span className="h-1 w-1 rounded-full bg-indigo-400" />{t}
+                    </span>
+                  ))}
+                </div>
               </div>
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                {allPrompts.map((p, i) => (
-                  <PromptCard key={p.id} type={p.label} prompt={p.prompt} description={p.description} index={i} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            /* 空态占位 */
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-3xl glass-soft">
-              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/20 via-violet-500/20 to-pink-500/20">
-                <Layers className="h-7 w-7 text-indigo-400 dark:text-indigo-300" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
-                  尚未生成 Prompt
-                </p>
-                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                  在左侧配置需求后，点击「生成 9 组专属 Prompt」
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
-                {['上传参考图', '选择电商平台', '指定绘图模型', '一键生成 9 组'].map((t, i) => (
-                  <span key={i} className="flex items-center gap-1 rounded-full glass-card px-2.5 py-1">
-                    <span className="h-1 w-1 rounded-full bg-indigo-400" />{t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </main>
       </div>
 

@@ -60,7 +60,7 @@ export default function PromptCard({ type, prompt, description, index = 0 }) {
   const charCount = editedPrompt?.length ?? 0;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl glass-card p-4 transition hover:-translate-y-0.5 hover:shadow-[var(--glass-shadow-lg)]">
+    <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-3xl glass-card p-4 transition hover:-translate-y-0.5 hover:shadow-[var(--glass-shadow-lg)]">
       <header className="mb-3 flex items-center gap-2.5">
         <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${style.gradient} text-white shadow-lg ${style.shadow}`}>
           <Icon className="h-4 w-4" />
